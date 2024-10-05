@@ -15,7 +15,7 @@
     function onLoad(){
       camera = document.getElementById("video");
       canvas = document.getElementById("canvas");
-      context = canvas.getContext("2d");
+      context = canvas.getContext("2d", { willReadFrequently: true });
       
       camera.width = 320;
       camera.height = 240;
@@ -44,11 +44,12 @@
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then(function(stream) {
-          if ("srcObject" in video) {
-            video.srcObject = stream;
+          if ("srcObject" in camera) {
+            camera.srcObject = stream;
           } else {
-            video.src = window.URL.createObjectURL(stream);
+            camera.src = window.URL.createObjectURL(stream);
           }
+          camera.play(); // カメラのストリームを再生
         })
         .catch(function(err) {
           console.log(err.name + ": " + err.message);
