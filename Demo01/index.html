@@ -1,12 +1,18 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>AR Marker Detection</title>
+    <style>
+        #video, #canvas {
+            width: 640px;
+            height: 480px;
+            border: 1px solid #000;
+        }
+    </style>
 </head>
 <body>
-    <video id="video" width="640" height="480" autoplay="true" style="display:none;"></video>
-    <canvas id="canvas" width="640" height="480"></canvas>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
 
     <script type="text/javascript" src="lib/cv.js"></script>
     <script type="text/javascript" src="lib/aruco.js"></script>
