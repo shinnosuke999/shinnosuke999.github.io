@@ -29,6 +29,17 @@ camera.position.z = 5;
 // ARマーカー検出の設定
 const detector = new AR.Detector();
 
+// マーカーIDを表示するための要素を作成
+const markerIdDisplay = document.createElement('div');
+markerIdDisplay.style.position = 'absolute';
+markerIdDisplay.style.top = '10px';
+markerIdDisplay.style.left = '10px';
+markerIdDisplay.style.color = 'white';
+markerIdDisplay.style.fontSize = '24px';
+markerIdDisplay.style.fontWeight = 'bold';
+markerIdDisplay.style.textShadow = '2px 2px 2px black';
+document.body.appendChild(markerIdDisplay);
+
 function animate() {
     requestAnimationFrame(animate);
 
@@ -42,7 +53,8 @@ function animate() {
 
         if (markers.length > 0) {
             // マーカーが検出された場合、3Dオブジェクトを配置
-            const corners = markers[0].corners;
+            const marker = markers[0];
+            const corners = marker.corners;
             
             // マーカーの中心を計算
             const centerX = (corners[0].x + corners[2].x) / 2;
@@ -51,6 +63,12 @@ function animate() {
             // 3Dオブジェクトの位置を更新
             cube.position.x = (centerX / canvas.width) * 2 - 1;
             cube.position.y = -(centerY / canvas.height) * 2 + 1;
+
+            // マーカーIDを表示
+            markerIdDisplay.textContent = `Marker ID: ${marker.id}`;
+        } else {
+            // マーカーが検出されない場合、表示をクリア
+            markerIdDisplay.textContent = '';
         }
     }
 
