@@ -38,6 +38,7 @@ markerIdDisplay.style.color = 'white';
 markerIdDisplay.style.fontSize = '24px';
 markerIdDisplay.style.fontWeight = 'bold';
 markerIdDisplay.style.textShadow = '2px 2px 2px black';
+markerIdDisplay.textContent = 'Marker ID: ???'; // 初期表示を設定
 document.body.appendChild(markerIdDisplay);
 
 function animate() {
@@ -66,9 +67,11 @@ function animate() {
 
             // マーカーIDを表示
             markerIdDisplay.textContent = `Marker ID: ${marker.id}`;
+            cube.visible = true; // 3Dオブジェクトを表示
         } else {
-            // マーカーが検出されない場合、表示をクリア
-            markerIdDisplay.textContent = '';
+            // マーカーが検出されない場合
+            markerIdDisplay.textContent = 'Marker ID: ???';
+            cube.visible = false; // 3Dオブジェクトを非表示
         }
     }
 
