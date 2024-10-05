@@ -122,4 +122,26 @@ function updateScene(markers) {
     }
 }
 
+// カメラからの映像を取得
+navigator.mediaDevices.enumerateDevices()
+    .then(function(devices) {
+        // 外部カメラ（多くの場合、リストの最後のビデオデバイス）を探す
+        let videoDevices = devices.filter(device => device.kind === 'videoinput');
+        let externalCamera = videoDevices[videoDevices.length - 1];
+
+        return navigator.mediaDevices.getUserMedia({
+            video: {
+                deviceId: externalCamera ? { exact: externalCamera.deviceId } : undefined
+            }
+        });
+    })
+    .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+    })
+    .catch(function(err) {
+        console.log("エラーが発生しました: " + err);
+    });
+
+
 window.onload = init;
