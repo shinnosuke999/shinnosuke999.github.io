@@ -76,6 +76,7 @@
         drawDebug();
         drawCorners(markers);
         drawId(markers);
+        displayMarkerInfo(markers);
       }
     }
 
@@ -195,6 +196,26 @@
       
       return dst;
     };
+
+    function displayMarkerInfo(markers) {
+      context.font = "20px Arial";
+      context.fillStyle = "white";
+      context.strokeStyle = "black";
+      context.lineWidth = 3;
+
+      var text;
+      if (markers.length > 0) {
+        text = "マーカーID: " + markers[0].id;
+      } else {
+        text = "マーカー認識中";
+      }
+
+      var x = 10;
+      var y = canvas.height - 10;
+
+      context.strokeText(text, x, y);
+      context.fillText(text, x, y);
+    }
 
   window.onload = onLoad;
 
