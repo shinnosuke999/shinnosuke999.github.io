@@ -1,29 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Demo01-03</title>
+    <title>マーカー検出デモ（改善版demo04）</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        body { margin: 0; padding: 0; }
+        #video { display: none; }
         #canvas { 
             position: absolute; 
             top: 0; 
             left: 0; 
+            width: 100%;
+            height: 100%;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <video id="video" style="display:none;"></video>
+    <video id="video"></video>
     <canvas id="canvas"></canvas>
+    <div id="info">マーカーを探しています...</div>
 
-    <script src="lib/cv.js"></script>
-    <script src="lib/aruco.js"></script>
+    <script src="https://raw.githack.com/jcmellado/js-aruco/master/src/cv.js"></script>
+    <script src="https://raw.githack.com/jcmellado/js-aruco/master/src/aruco.js"></script>
 
     <script>
         let video, canvas, context, imageData, detector;
+        let infoDiv;
+        let lastDetectedMarkers = []; // 前回検出されたマーカーを保存
 
         function init() {
             video = document.getElementById("video");
             canvas = document.getElementById("canvas");
             context = canvas.getContext("2d");
+            infoDiv = document.getElementById("info");
 
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -35,6 +55,7 @@
                 })
                 .catch(function(err) {
                     console.log("カメラエラー: " + err);
+                    infoDiv.textContent = "カメラエラー: " + err;
                 });
 
             detector = new AR.Detector();
@@ -49,16 +70,47 @@
                 snapshot();
 
                 var markers = detector.detect(imageData);
-                console.log("検出されたマーカー:", markers);
+                
+                // マーカーの検出状態が変化した場合のみログを出力
+                if (markersChanged(markers, lastDetectedMarkers)) {
+                    console.log("検出されたマーカー:", markers);
+                    if (markers.length > 0) {
+                        console.log("検出されたマーカーID:", markers.map(m => m.id));
+                    } else {
+                        console.log("マーカーが検出されなくなりました");
+                    }
+                }
+
+                // 現在のマーカー情報を保存
+                lastDetectedMarkers = markers;
+
+                // キャンバスをクリア
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                // ビデオフレームを描画
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
                 drawCorners(markers);
                 drawId(markers);
+
+                updateInfo(markers);
             }
         }
 
         function snapshot() {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
+        // マーカーの検出状態が変化したかどうかをチェック
+        function markersChanged(currentMarkers, lastMarkers) {
+            if (currentMarkers.length !== lastMarkers.length) {
+                return true;
+            }
+            
+            const currentIds = currentMarkers.map(m => m.id).sort().join(',');
+            const lastIds = lastMarkers.map(m => m.id).sort().join(',');
+            
+            return currentIds !== lastIds;
         }
 
         function drawCorners(markers) {
@@ -79,19 +131,40 @@
 
                 context.stroke();
                 context.closePath();
+
+                // マーカーの中心に円を描画
+                let centerX = corners.reduce((sum, corner) => sum + corner.x, 0) / 4;
+                let centerY = corners.reduce((sum, corner) => sum + corner.y, 0) / 4;
+                context.beginPath();
+                context.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+                context.fillStyle = "blue";
+                context.fill();
             }
         }
 
         function drawId(markers) {
             context.strokeStyle = "blue";
-            context.lineWidth = 1;
+            context.lineWidth = 2;
+            context.font = "20px Arial";
 
             for (let i = 0; i < markers.length; i++) {
                 let corners = markers[i].corners;
                 let x = corners[0].x;
                 let y = corners[0].y;
 
-                context.strokeText(markers[i].id, x, y);
+                context.strokeText("ID: " + markers[i].id, x, y - 15);
+                context.fillStyle = "white";
+                context.fillText("ID: " + markers[i].id, x, y - 15);
+            }
+        }
+
+        function updateInfo(markers) {
+            if (markers.length > 0) {
+                infoDiv.textContent = `検出されたマーカー: ${markers.length}個（ID: ${markers.map(m => m.id).join(', ')}）`;
+                infoDiv.style.backgroundColor = "rgba(0, 255, 0, 0.7)"; // 緑色の背景
+            } else {
+                infoDiv.textContent = "マーカーを探しています...";
+                infoDiv.style.backgroundColor = "rgba(255, 255, 255, 0.7)"; // 白色の背景
             }
         }
 
