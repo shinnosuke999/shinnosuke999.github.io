@@ -61,124 +61,23 @@ function initThree() {
   directionalLight.position.set(0, 1, 0);
   scene.add(directionalLight);
 
-  // ヘルパーオブジェクトの追加（デバッグ用）
-  var axesHelper = new THREE.AxesHelper(5);
-  scene.add(axesHelper);
-
-  var gridHelper = new THREE.GridHelper(10, 10);
-  scene.add(gridHelper);
-
   // GLTFローダーの作成
   var loader = new THREE.GLTFLoader();
 
   // 3Dモデルの読み込み
   loader.load('models/1human_and_dog.glb', function(gltf) {
     model = gltf.scene;
-    model.scale.set(0.05, 0.05, 0.05);  // モデルのサイズ調整
+    model.scale.set(0.01, 0.01, 0.01);  // モデルのサイズをさらに小さく調整
     scene.add(model);
     model.visible = false;  // 初期状態では非表示
     console.log('3Dモデルが正常に読み込まれました');
+    console.log('モデルの初期位置:', model.position);
+    console.log('モデルのスケール:', model.scale);
   }, undefined, function(error) {
     console.error('モデルの読み込みに失敗しました:', error);
   });
-
-  camera.position.z = 5;
-
-  // ウィンドウのリサイズイベントリスナーを追加
-  window.addEventListener('resize', onWindowResize, false);
 }
 
-// ウィンドウリサイズ時の処理
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-// メインのアニメーションループ
-function tick() {
-  requestAnimationFrame(tick);
-
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    snapshot();
-
-    var markers = detector.detect(imageData);
-    drawCorners(markers);
-    drawId(markers);
-    updateScene(markers);
-  }
-
-  renderer.render(scene, camera);
-}
-
-// ビデオフレームをキャンバスに描画
-function snapshot() {
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-}
-
-// マーカーの角を描画
-function drawCorners(markers) {
-  context.lineWidth = 3;
-
-  for (var i = 0; i < markers.length; i++) {
-    var corners = markers[i].corners;
-    
-    context.strokeStyle = "red";
-    context.beginPath();
-    
-    for (var j = 0; j < corners.length; j++) {
-      var corner = corners[j];
-      context.moveTo(corner.x, corner.y);
-      corner = corners[(j + 1) % corners.length];
-      context.lineTo(corner.x, corner.y);
-    }
-
-    context.stroke();
-    context.closePath();
-    
-    context.strokeStyle = "green";
-    context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
-  }
-}
-
-// マーカーIDを描画
-function drawId(markers) {
-  context.strokeStyle = "blue";
-  context.lineWidth = 1;
-  
-  for (var i = 0; i < markers.length; i++) {
-    var corners = markers[i].corners;
-    
-    var x = corners[0].x;
-    var y = corners[0].y;
-
-    context.strokeText(markers[i].id, x, y);
-  }
-}
-
-// デバッグ用の立方体を追加
-var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-var material = new THREE.MeshBasicMaterial({color: 0xff0000});
-var debugCube = new THREE.Mesh(geometry, material);
-scene.add(debugCube);
-console.log('デバッグ用の赤い立方体を追加しました');
-
-
-// 3Dモデルの読み込み
-loader.load('models/1human_and_dog.glb', function(gltf) {
-  model = gltf.scene;
-  model.scale.set(0.01, 0.01, 0.01);  // モデルのサイズをさらに小さく調整
-  scene.add(model);
-  model.visible = true;  // モデルを常に表示状態に
-  console.log('3Dモデルが正常に読み込まれました');
-  console.log('モデルの初期位置:', model.position);
-  console.log('モデルのスケール:', model.scale);
-}, undefined, function(error) {
-  console.error('モデルの読み込みに失敗しました:', error);
-});
-
-// 3Dシーンの更新
 // 3Dシーンの更新
 function updateScene(markers) {
   console.log('検出されたマーカー数:', markers.length);
@@ -216,11 +115,16 @@ function updateScene(markers) {
       var angle = Math.atan2(dy, dx);
       model.rotation.z = angle - Math.PI / 2;
 
+      model.visible = true;  // モデルを表示
       console.log('3Dモデルの位置:', model.position);
       console.log('3Dモデルの回転:', model.rotation);
       console.log('3Dモデルの可視性:', model.visible);
     } else {
       console.log('3Dモデルがロードされていません');
+    }
+  } else {
+    if (model) {
+      model.visible = false;  // マーカーが検出されない場合はモデルを非表示に
     }
   }
 }
@@ -238,12 +142,73 @@ function tick() {
     updateScene(markers);
   }
 
-  // カメラの位置をログ出力
-  console.log('カメラの位置:', camera.position);
-
   renderer.render(scene, camera);
-
 }
 
 // ページ読み込み完了時にonLoad関数を実行
-window.onload = onLoad;
+window.onload = function() {
+  onLoad();
+};
+
+// カメラの映像をキャンバスに描画する関数
+function snapshot() {
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+// マーカーのコーナーを描画する関数
+function drawCorners(markers) {
+  var corners, corner, i, j;
+
+  context.lineWidth = 3;
+  context.strokeStyle = "red";
+
+  for (i = 0; i < markers.length; ++i) {
+    corners = markers[i].corners;
+
+    context.beginPath();
+
+    for (j = 0; j < corners.length; ++j) {
+      corner = corners[j];
+      context.moveTo(corner.x, corner.y);
+      corner = corners[(j + 1) % corners.length];
+      context.lineTo(corner.x, corner.y);
+    }
+
+    context.stroke();
+    context.closePath();
+
+    context.strokeStyle = "green";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(corners[0].x, corners[0].y);
+    context.lineTo(corners[2].x, corners[2].y);
+    context.moveTo(corners[1].x, corners[1].y);
+    context.lineTo(corners[3].x, corners[3].y);
+    context.stroke();
+    context.closePath();
+  }
+}
+
+// マーカーIDを描画する関数
+function drawId(markers) {
+  var corners, corner, x, y, i, j;
+
+  context.strokeStyle = "blue";
+  context.lineWidth = 1;
+
+  for (i = 0; i < markers.length; ++i) {
+    corners = markers[i].corners;
+
+    x = Infinity;
+    y = Infinity;
+
+    for (j = 0; j < corners.length; ++j) {
+      corner = corners[j];
+      x = Math.min(x, corner.x);
+      y = Math.min(y, corner.y);
+    }
+
+    context.strokeText(markers[i].id, x, y);
+  }
+}
