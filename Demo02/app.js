@@ -40,16 +40,18 @@ function onLoad(){
   navigator.mediaDevices
     .getUserMedia({ video: true })
     .then(function(stream) {
-      if ("srcObject" in video) {
-        video.srcObject = stream;
+      if ("srcObject" in camera) {
+        camera.srcObject = stream;
       } else {
-        video.src = window.URL.createObjectURL(stream);
+        camera.src = window.URL.createObjectURL(stream);
       }
+      camera.onloadedmetadata = function(e) {
+        camera.play();
+      };
     })
     .catch(function(err) {
       console.log(err.name + ": " + err.message);
-    }
-  );
+    });
     
   // 画像処理用の変数を初期化
   imageData = context.getImageData(0, 0, camera.width, camera.height);
@@ -68,7 +70,7 @@ function onLoad(){
 function tick(){
   requestAnimationFrame(tick);
   
-  if (video.readyState === video.HAVE_ENOUGH_DATA){
+  if (camera.readyState === camera.HAVE_ENOUGH_DATA){
     snapshot();
 
     var markers = detector.detect(imageData);
@@ -81,8 +83,8 @@ function tick(){
 
 // ビデオフレームをキャンバスに描画
 function snapshot(){
-  context.drawImage(video, 0, 0, camera.width, camera.height);
-  imageData = context.getImageData(0, 0, camera.width, camera.height);
+  context.drawImage(camera, 0, 0, canvas.width, canvas.height);
+  imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 }
       
 // デバッグ情報を描画
@@ -92,12 +94,12 @@ function drawDebug(){
   context.clearRect(0, 0, canvas.width, canvas.height);
   
   context.putImageData(imageData, 0, 0);
-  context.putImageData( createImage(detector.grey, debugImage), width, 0);
-  context.putImageData( createImage(detector.thres, debugImage), width * 2, 0);
+  context.putImageData(createImage(detector.grey, debugImage), width, 0);
+  context.putImageData(createImage(detector.thres, debugImage), width * 2, 0);
   
   drawContours(detector.contours, 0, height, width, height, function(hole) {return hole? "magenta": "blue";});
-  drawContours(detector.polys, width, height, width, height, function() {return "green";} );
-  drawContours(detector.candidates, width * 2, height, width, height, function() {return "red";} );
+  drawContours(detector.polys, width, height, width, height, function() {return "green";});
+  drawContours(detector.candidates, width * 2, height, width, height, function() {return "red";});
   
   drawWarps(detector.grey, detector.candidates, 0, height * 2 + 20);
 }
@@ -114,9 +116,9 @@ function drawContours(contours, x, y, width, height, fn){
 
     for (j = 0; j < contour.length; ++ j){
       point = contour[j];
-      this.context.moveTo(x + point.x, y + point.y);
+      context.moveTo(x + point.x, y + point.y);
       point = contour[(j + 1) % contour.length];
-      this.context.lineTo(x + point.x, y + point.y);
+      context.lineTo(x + point.x, y + point.y);
     }
     
     context.stroke();
@@ -128,15 +130,15 @@ function drawContours(contours, x, y, width, height, fn){
 function drawWarps(imageSrc, contours, x, y){
   var i = contours.length, j, contour;
   
-  var offset = ( canvas.width - ( (warpImage.width + 10) * contours.length) ) / 2
+  var offset = (canvas.width - ((warpImage.width + 10) * contours.length)) / 2;
   while(i --){
     contour = contours[i];
     
     CV.warp(imageSrc, homographyImage, contour, warpImage.width);
-    this.context.putImageData( createImage(homographyImage, warpImage), offset + i * (warpImage.width + 10), y);
+    context.putImageData(createImage(homographyImage, warpImage), offset + i * (warpImage.width + 10), y);
     
-    CV.threshold(homographyImage, homographyImage, CV.otsu(homographyImage) );
-    this.context.putImageData( createImage(homographyImage, warpImage), offset + i * (warpImage.width + 10), y + 60);
+    CV.threshold(homographyImage, homographyImage, CV.otsu(homographyImage));
+    context.putImageData(createImage(homographyImage, warpImage), offset + i * (warpImage.width + 10), y + 60);
   }
 }
 
@@ -167,7 +169,7 @@ function drawCorners(markers){
   }
 }
 
-// マーカーIDを描画←確認用
+// マーカーIDを描画
 function drawId(markers){
   var corners, corner, x, y, i, j;
   
@@ -201,7 +203,7 @@ function createImage(src, dst){
   }
   
   return dst;
-};
+}
 
 // マーカー情報を表示
 function displayMarkerInfo(markers) {
