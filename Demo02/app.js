@@ -202,28 +202,41 @@ function createImage(src, dst){
   
   return dst;
 };
-
 // マーカー情報を表示
-/*function displayMarkerInfo(markers) {
-  context.font = "20px Arial";
-  context.fillStyle = "white";
-  context.strokeStyle = "black";
-  context.lineWidth = 3;
-
-  var text;
-  if (markers.length > 0) {
-    text = "マーカーID: " + markers[0].id;
-  } else {
-    text = "マーカー認識中";
+function displayMarkerInfo(markers) {
+    context.font = "20px Arial";
+    context.fillStyle = "white";
+    context.strokeStyle = "black";
+    context.lineWidth = 3;
+  
+    var text;
+    if (markers.length > 0) {
+      text = "マーカーID: " + markers[0].id;
+    } else {
+      text = "マーカー認識中";
+    }
+  
+    var x = 10;
+    var y = canvas.height - 10;
+  
+    context.strokeText(text, x, y);
+    context.fillText(text, x, y);
   }
-
-  var x = 10;
-  var y = canvas.height - 10;
-
-  context.strokeText(text, x, y);
-  context.fillText(text, x, y);
-}
-  */
-
-// ページ読み込み完了時にonLoad関数を実行
-window.onload = onLoad;
+  
+  // メインのアニメーションループ
+  function tick(){
+    requestAnimationFrame(tick);
+    
+    if (video.readyState === video.HAVE_ENOUGH_DATA){
+      snapshot();
+  
+      var markers = detector.detect(imageData);
+      drawDebug();
+      drawCorners(markers);
+      drawId(markers);
+      displayMarkerInfo(markers);
+    }
+  }
+  
+  // ページ読み込み完了時にonLoad関数を実行
+  window.onload = onLoad;
