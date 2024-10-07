@@ -75,7 +75,7 @@ function initThree() {
   loader.load('models/1human_and_dog.glb', function(gltf) {
     model = gltf.scene;
     model.scale.set(1, 1, 1);  // モデルのサイズを調整
-    model.rotation.z = Math.PI / 2;  // モデルを左に90度回転
+    model.rotation.x = Math.PI / 2;  // モデルを地面に対して垂直に設定
     scene.add(model);
     model.visible = false;  // 初期状態では非表示
     console.log('3Dモデルが正常に読み込まれました');
@@ -121,7 +121,7 @@ function updateScene(markers) {
       var dx = corners[1].x - corners[0].x;
       var dy = corners[1].y - corners[0].y;
       var angle = Math.atan2(dy, dx);
-      model.rotation.z = angle - Math.PI / 2;
+      model.rotation.z = angle;
 
       model.visible = true;  // モデルを表示
       console.log('3Dモデルの位置:', model.position);
