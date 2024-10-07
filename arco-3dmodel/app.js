@@ -48,6 +48,7 @@ function initThree() {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0x000000, 0);  // 背景を透明に設定
   document.body.appendChild(renderer.domElement);
 
   // カメラの位置を調整
@@ -67,7 +68,7 @@ function initThree() {
   // 3Dモデルの読み込み
   loader.load('models/1human_and_dog.glb', function(gltf) {
     model = gltf.scene;
-    model.scale.set(0.01, 0.01, 0.01);  // モデルのサイズをさらに小さく調整
+    model.scale.set(0.1, 0.1, 0.1);  // モデルのサイズを調整
     scene.add(model);
     model.visible = false;  // 初期状態では非表示
     console.log('3Dモデルが正常に読み込まれました');
