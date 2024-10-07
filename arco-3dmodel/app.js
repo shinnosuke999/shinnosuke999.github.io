@@ -50,6 +50,10 @@ function initThree() {
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
+  // カメラの位置を調整
+  camera.position.set(0, 0, 10);
+  camera.lookAt(0, 0, 0);
+
   // 光源の追加
   var light = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(light);
@@ -153,6 +157,28 @@ function drawId(markers) {
   }
 }
 
+// デバッグ用の立方体を追加
+var geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+var material = new THREE.MeshBasicMaterial({color: 0xff0000});
+var debugCube = new THREE.Mesh(geometry, material);
+scene.add(debugCube);
+console.log('デバッグ用の赤い立方体を追加しました');
+
+
+// 3Dモデルの読み込み
+loader.load('models/1human_and_dog.glb', function(gltf) {
+  model = gltf.scene;
+  model.scale.set(0.01, 0.01, 0.01);  // モデルのサイズをさらに小さく調整
+  scene.add(model);
+  model.visible = true;  // モデルを常に表示状態に
+  console.log('3Dモデルが正常に読み込まれました');
+  console.log('モデルの初期位置:', model.position);
+  console.log('モデルのスケール:', model.scale);
+}, undefined, function(error) {
+  console.error('モデルの読み込みに失敗しました:', error);
+});
+
+// 3Dシーンの更新
 // 3Dシーンの更新
 function updateScene(markers) {
   console.log('検出されたマーカー数:', markers.length);
@@ -162,9 +188,6 @@ function updateScene(markers) {
 
   if (markers.length > 0 && markers[0].id === 0) {
     if (model) {
-      model.visible = true;
-      console.log('3Dモデルを表示します');
-      
       // マーカーの中心を計算
       var centerX = 0, centerY = 0;
       for (var i = 0; i < 4; i++) {
@@ -195,21 +218,31 @@ function updateScene(markers) {
 
       console.log('3Dモデルの位置:', model.position);
       console.log('3Dモデルの回転:', model.rotation);
+      console.log('3Dモデルの可視性:', model.visible);
     } else {
       console.log('3Dモデルがロードされていません');
-      // デバッグ用の単純な形状を表示
-      if (!model) {
-        var geometry = new THREE.BoxGeometry(1, 1, 1);
-        var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-        model = new THREE.Mesh(geometry, material);
-        scene.add(model);
-        console.log('デバッグ用の立方体を作成しました');
-      }
     }
-  } else if (model) {
-    model.visible = false;  // マーカーが検出されていない場合は3Dモデルを非表示に
-    console.log('3Dモデルを非表示にします');
   }
+}
+
+// メインのアニメーションループ
+function tick() {
+  requestAnimationFrame(tick);
+
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    snapshot();
+
+    var markers = detector.detect(imageData);
+    drawCorners(markers);
+    drawId(markers);
+    updateScene(markers);
+  }
+
+  // カメラの位置をログ出力
+  console.log('カメラの位置:', camera.position);
+
+  renderer.render(scene, camera);
+
 }
 
 // ページ読み込み完了時にonLoad関数を実行
