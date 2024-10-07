@@ -1,6 +1,6 @@
 // グローバル変数の宣言
 var video, canvas, context, imageData, detector;
-var scene, camera, renderer, model;
+var scene, camera, renderer, model, videoTexture, videoMaterial, videoMesh;
 
 // ページ読み込み完了時に実行される関数
 function onLoad() {
@@ -48,12 +48,18 @@ function initThree() {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0x000000, 0);  // 背景を透明に設定
-  document.body.appendChild(renderer.domElement);
+  document.getElementById('three-container').appendChild(renderer.domElement);
 
   // カメラの位置を調整
   camera.position.set(0, 0, 10);
   camera.lookAt(0, 0, 0);
+
+  // カメラ映像をテクスチャとして設定
+  videoTexture = new THREE.VideoTexture(video);
+  videoMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+  videoMesh = new THREE.Mesh(new THREE.PlaneGeometry(16, 9), videoMaterial);
+  videoMesh.scale.set(1.5, 1.5, 1.5);
+  scene.add(videoMesh);
 
   // 光源の追加
   var light = new THREE.AmbientLight(0xffffff, 0.5);
