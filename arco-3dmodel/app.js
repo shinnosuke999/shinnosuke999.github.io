@@ -68,7 +68,7 @@ function initThree() {
   // 3Dモデルの読み込み
   loader.load('models/1human_and_dog.glb', function(gltf) {
     model = gltf.scene;
-    model.scale.set(0.1, 0.1, 0.1);  // モデルのサイズを調整
+    model.scale.set(1, 1, 1);  // モデルのサイズを調整
     scene.add(model);
     model.visible = false;  // 初期状態では非表示
     console.log('3Dモデルが正常に読み込まれました');
