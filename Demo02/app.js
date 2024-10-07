@@ -63,7 +63,7 @@ function onLoad(){
   // アニメーションループを開始
   requestAnimationFrame(tick);
 }
-
+/*
 // メインのアニメーションループ
 function tick(){
   requestAnimationFrame(tick);
@@ -78,6 +78,7 @@ function tick(){
     displayMarkerInfo(markers);
   }
 }
+*/
 
 // ビデオフレームをキャンバスに描画
 function snapshot(){
