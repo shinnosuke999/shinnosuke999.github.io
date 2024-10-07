@@ -23,10 +23,11 @@ function onLoad() {
       // カメラの実際のサイズに合わせてキャンバスのサイズを設定
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      console.log('カメラ解像度:', video.videoWidth, 'x', video.videoHeight);
     };
   })
   .catch(function(err) {
-    console.log("エラー: " + err);
+    console.log("カメラエラー: " + err);
   });
 
   // AR.jsの設定（マーカー検出器の初期化）
@@ -56,6 +57,13 @@ function initThree() {
   directionalLight.position.set(0, 1, 0);
   scene.add(directionalLight);
 
+  // ヘルパーオブジェクトの追加（デバッグ用）
+  var axesHelper = new THREE.AxesHelper(5);
+  scene.add(axesHelper);
+
+  var gridHelper = new THREE.GridHelper(10, 10);
+  scene.add(gridHelper);
+
   // GLTFローダーの作成
   var loader = new THREE.GLTFLoader();
 
@@ -65,6 +73,7 @@ function initThree() {
     model.scale.set(0.05, 0.05, 0.05);  // モデルのサイズ調整
     scene.add(model);
     model.visible = false;  // 初期状態では非表示
+    console.log('3Dモデルが正常に読み込まれました');
   }, undefined, function(error) {
     console.error('モデルの読み込みに失敗しました:', error);
   });
@@ -146,9 +155,15 @@ function drawId(markers) {
 
 // 3Dシーンの更新
 function updateScene(markers) {
+  console.log('検出されたマーカー数:', markers.length);
+  if (markers.length > 0) {
+    console.log('検出されたマーカーID:', markers[0].id);
+  }
+
   if (markers.length > 0 && markers[0].id === 0) {
     if (model) {
       model.visible = true;
+      console.log('3Dモデルを表示します');
       
       // マーカーの中心を計算
       var centerX = 0, centerY = 0;
@@ -177,9 +192,23 @@ function updateScene(markers) {
       var dy = corners[1].y - corners[0].y;
       var angle = Math.atan2(dy, dx);
       model.rotation.z = angle - Math.PI / 2;
+
+      console.log('3Dモデルの位置:', model.position);
+      console.log('3Dモデルの回転:', model.rotation);
+    } else {
+      console.log('3Dモデルがロードされていません');
+      // デバッグ用の単純な形状を表示
+      if (!model) {
+        var geometry = new THREE.BoxGeometry(1, 1, 1);
+        var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
+        model = new THREE.Mesh(geometry, material);
+        scene.add(model);
+        console.log('デバッグ用の立方体を作成しました');
+      }
     }
   } else if (model) {
     model.visible = false;  // マーカーが検出されていない場合は3Dモデルを非表示に
+    console.log('3Dモデルを非表示にします');
   }
 }
 
