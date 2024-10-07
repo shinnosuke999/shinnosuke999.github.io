@@ -168,15 +168,15 @@ AR.Detector.prototype.getMarker = function(imageSrc, candidate) {
     return null;
   }
 
-  var width = (imageSrc.width / 7) >>> 0,
+  var width = (imageSrc.width / 6) >>> 0,
       minZero = (width * width) >> 1,
       bits = [], rotations = [],
       square, bestDistance, bestId, bestRotation, i, j;
 
   // マーカーの外枠が黒であることを確認
-  for (i = 0; i < 7; ++i) {
-    let inc = (0 === i || 6 === i) ? 1 : 6;
-    for (j = 0; j < 7; j += inc) {
+  for (i = 0; i < 6; ++i) {
+    let inc = (0 === i || 5 === i) ? 1 : 5;
+    for (j = 0; j < 6; j += inc) {
       square = {x: j * width, y: i * width, width: width, height: width};
       if (CV.countNonZero(imageSrc, square) > minZero) {
         return null;
@@ -184,10 +184,10 @@ AR.Detector.prototype.getMarker = function(imageSrc, candidate) {
     }
   }
 
-  // 5x5のビットパターンを読み取る（境界を含む）
-  for (i = 0; i < 5; ++i) {
+  // 4x4のビットパターンを読み取る（境界を含む）
+  for (i = 0; i < 4; ++i) {
     bits[i] = [];
-    for (j = 0; j < 5; ++j) {
+    for (j = 0; j < 4; ++j) {
       square = {x: (j+1) * width, y: (i+1) * width, width: width, height: width};
       bits[i][j] = CV.countNonZero(imageSrc, square) > minZero ? 1 : 0;
     }
@@ -208,7 +208,7 @@ AR.Detector.prototype.getMarker = function(imageSrc, candidate) {
     }
   }
 
-  // 一定以上の距離の場合はnullを返す（閾値は調整可能）
+  // 完全一致しない場合はnullを返す（必要に応じて閾値を調整）
   if (bestDistance > 0) {
     return null;
   }
@@ -236,11 +236,11 @@ AR.Detector.prototype.hammingDistanceToDict = function(bits) {
 // 新しい関数: IDをビットパターンに変換
 AR.Detector.prototype.idToBits = function(idArray) {
   let bits = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     bits[i] = [];
-    for (let j = 0; j < 5; j++) {
-      let byteIndex = Math.floor((i * 5 + j) / 8);
-      let bitIndex = (i * 5 + j) % 8;
+    for (let j = 0; j < 4; j++) {
+      let byteIndex = Math.floor((i * 4 + j) / 8);
+      let bitIndex = (i * 4 + j) % 8;
       bits[i][j] = (idArray[byteIndex] & (1 << (7 - bitIndex))) ? 1 : 0;
     }
   }
@@ -250,8 +250,8 @@ AR.Detector.prototype.idToBits = function(idArray) {
 // 修正されたハミング距離計算関数
 AR.Detector.prototype.hammingDistance = function(bits1, bits2) {
   let distance = 0;
-  for (let i = 0; i < 5; i++) {
-    for (let j = 0; j < 5; j++) {
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
       if (bits1[i][j] !== bits2[i][j]) {
         distance++;
       }
